@@ -1,15 +1,15 @@
-import db from '../model/index.js';
+import * as db from '../database/index.js';
+import * as models from "../database/models.js";
 import { getDefaultResponse } from "../util/helper.js";
 import { Codes, CONSTANTS } from "../util/SiteConfig.js";
 import * as dotenv from "dotenv";
-const Client = db.Client;
 
 export class UserMgmtService {
     constructor() {
         dotenv.config();
     }
 
-    /**
+    /** 
      *add new user 
      */
     async addUser(userReq, event, context) {
@@ -25,14 +25,18 @@ export class UserMgmtService {
                 return Promise.resolve(finalResponse);
             }
 
-            const clientData = new Client({
+            const User = models.user;
+
+            const userData = new User({
                 name: userReq.name,
                 age: userReq.age,
                 technology: userReq.technology
             });
 
+            console.log("user data is",userData)
+
             try {
-                const data = await clientData.save()
+                const data = await userData.save();
                 console.log("saveData::", data);
                 finalResponse.code = Codes.OK;
                 finalResponse.message = "User saved successfuly";
