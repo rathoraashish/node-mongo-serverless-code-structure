@@ -60,9 +60,6 @@ provider:
 functions:
   adduser:
     handler: src/handlers/UserHandler.addUser
-#    The following are a few example events you can configure
-#    NOTE: Please make sure to change your handler code to work with those events
-#    Check the event documentation for details
     events:
       - httpApi:
          path: /users/adduser
@@ -95,10 +92,13 @@ functions:
 #          conditions:
 #            host: example.com
 #            path: /hello
-
-#    Define function environment variables here
-#    environment:
-#      variable2: value2
+  userLogin:
+    handler: src/handlers/UserHandler.userLogin
+    events:
+      - httpApi:
+          path: /users/login
+          method: post
+          cors: true
 
 plugins:
   - serverless-dotenv-plugin

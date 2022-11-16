@@ -1,8 +1,8 @@
-import * as db from '../database/index.js';
-import * as models from "../database/models.js";
-import { getDefaultResponse } from "../util/helper.js";
+import { getDefaultResponse, isValidString } from "../util/helper.js";
+import { UserMgmtDao } from "../daos/UserMgmtDao.js";
 import { Codes, CONSTANTS } from "../util/SiteConfig.js";
 import * as dotenv from "dotenv";
+import jwt from 'jsonwebtoken';
 
 export class UserMgmtService {
     constructor() {
@@ -16,39 +16,71 @@ export class UserMgmtService {
 
         let finalResponse = getDefaultResponse();
         // let loginUser = getAuthorizerUser(event);
-        console.log("User request is", userReq);
+        // console.log("User request is", userReq);
         try {
             //check validation
-            if (!userReq.name || !userReq.age || !userReq.technology) {
+            if (!userReq.first_name || !userReq.last_name || !userReq.email || !isValidString(userReq.email) || !userReq.password || !isValidString(userReq.password) || !userReq.username) {
                 finalResponse.message = CONSTANTS.REQUIRED_FIELDS_ARE_MISSING;
                 finalResponse.code = Codes.BAD_REQUEST;
                 return Promise.resolve(finalResponse);
             }
 
-            const User = models.user;
+            let result = await new UserMgmtDao().saveUser(userReq);
+            console.log("REsult from DAo is", result);
 
-            const userData = new User({
-                name: userReq.name,
-                age: userReq.age,
-                technology: userReq.technology
-            });
-
-            console.log("user data is",userData)
-
-            try {
-                const data = await userData.save();
-                console.log("saveData::", data);
-                finalResponse.code = Codes.OK;
-                finalResponse.message = "User saved successfuly";
-                return Promise.resolve(finalResponse);
-
-            }
-            catch (error) {
-                console.log("error")
+            if (result && result.code == 200 && result.msg == 'success') {
+                finalResponse.data = result.data;
+            } else {
+                finalResponse.message = CONSTANTS.SOMETHING_WENT_WRONG;
                 finalResponse.code = Codes.BAD_REQUEST;
-                finalResponse.message = "Error occured"
+            }
+            return Promise.resolve(finalResponse);
+        } catch (e) {
+            console.log("Error in  save user", e);
+            return Promise.reject(e);
+        }
+    }
+
+    /** 
+     * Login user
+    */
+    async loginUser(userReq, event, context) {
+
+        let finalResponse = getDefaultResponse();
+        // let loginUser = getAuthorizerUser(event);
+        // console.log("User request is", userReq);
+        try {
+            //check validation
+            if (!userReq.email_username || !userReq.password) {
+                finalResponse.message = CONSTANTS.REQUIRED_FIELDS_ARE_MISSING;
+                finalResponse.code = Codes.BAD_REQUEST;
                 return Promise.resolve(finalResponse);
             }
+
+            let result = await new UserMgmtDao().loginUser(userReq);
+            // console.log("REsult from DAo is", result);
+
+            if (result && result.code == 200 && result.msg == 'success') {
+                let tokenData = { 'id': result.data._id, 'email': result.data.email }
+                console.log("Token Data", tokenData);
+                let token = jwt.sign({
+                    data: tokenData
+                }, process.env.EncryptionKEY);
+
+                let userData = result.data;
+                console.log("USER DATA",userData);
+                userData.auth_token = token;
+
+                finalResponse.data = {"userData":userData}
+            } else if(result && result.code == 200 && result.msg == 'invalid_cred') {
+                finalResponse.message = CONSTANTS.INCORRECT_EMAIL_PASSWORD;
+                finalResponse.code = Codes.UNAUTHORIZED;
+            } else {
+                finalResponse.message = CONSTANTS.USER_NOT_FOUND;
+                finalResponse.code = Codes.NOT_FOUND;
+            }
+
+            return Promise.resolve(finalResponse);
         } catch (e) {
             console.log("Error in  save user", e);
             return Promise.reject(e);
