@@ -61,7 +61,7 @@ export class UserMgmtDao {
                     if (user && user != null) {
                         if (user?.password == userReq?.password) {
                             delete user.password;
-                            console.log("user is", user);
+                            // console.log("user is", user);
                             result = { code: 200, data: user, msg: 'success' }
                         } else {
                             result = { code: 200, data: null, msg: 'invalid_cred' }
@@ -71,7 +71,36 @@ export class UserMgmtDao {
                     }
                 })
                 .catch((error) => {
-                    console.log("Mongo ERROR code is", error);
+                    console.log("Mongo ERROR");
+                    result = { code: 400, data: null, msg: 'not_found' }
+                });
+            return Promise.resolve(result);
+        } catch (e) {
+            return Promise.reject(e);
+        } finally {
+            //nothing to do
+        }
+    }
+
+    /***
+* get user by id
+*
+*/
+    async getUserByID(id) {
+        let result = {};
+        console.log("User id is", id);
+        try {
+            await models.user
+                .findOne({ _id: id })
+                .then((user) => {
+                    user = user.toObject();
+                    delete user.password;
+                    if (user) {
+                        result = { code: 200, data: user, msg: 'success' }
+                    } 
+                })
+                .catch((error) => {
+                    console.log("Mongo ERROR");
                     result = { code: 400, data: null, msg: 'not_found' }
                 });
             return Promise.resolve(result);

@@ -68,11 +68,11 @@ export class UserMgmtService {
                 }, process.env.EncryptionKEY);
 
                 let userData = result.data;
-                console.log("USER DATA",userData);
+                // console.log("USER DATA",userData);
                 userData.auth_token = token;
 
-                finalResponse.data = {"userData":userData}
-            } else if(result && result.code == 200 && result.msg == 'invalid_cred') {
+                finalResponse.data = { "userData": userData }
+            } else if (result && result.code == 200 && result.msg == 'invalid_cred') {
                 finalResponse.message = CONSTANTS.INCORRECT_EMAIL_PASSWORD;
                 finalResponse.code = Codes.UNAUTHORIZED;
             } else {
@@ -80,6 +80,48 @@ export class UserMgmtService {
                 finalResponse.code = Codes.NOT_FOUND;
             }
 
+            return Promise.resolve(finalResponse);
+        } catch (e) {
+            console.log("Error in  login user", e);
+            return Promise.reject(e);
+        }
+    }
+
+    /** 
+     * Get user info
+    */
+    async getUser(userReq, event, context) {
+
+        let finalResponse = getDefaultResponse();
+        let authToken = event.headers.authorization;
+        // let loginUser = getAuthorizerUser(event);
+        try {
+            //check validation
+            if (!authToken || !isValidString(authToken)) {
+                finalResponse.message = CONSTANTS.REQUIRED_FIELDS_ARE_MISSING;
+                finalResponse.code = Codes.BAD_REQUEST;
+                return Promise.resolve(finalResponse);
+            }
+
+            try {
+                let result;
+
+                const decoded = jwt.verify(authToken, process.env.EncryptionKEY);
+                console.log("data is",decoded);
+
+                result = await new UserMgmtDao().getUserByID(decoded.data.id);
+                // console.log("RESULT from daos",result);
+                if (result && result.code == 200 ) {
+                    finalResponse.data = {"userData":result.data}
+                } else {
+                    finalResponse.message = CONSTANTS.USER_NOT_FOUND;
+                    finalResponse.code = Codes.NOT_FOUND;
+                }
+            } catch (e) {
+                e.code = (e.message == "invalid signature" || e.message == "jwt expired") ? Codes.SESSION_EXPIRE : 500;
+                e.message = (e.message == "invalid signature" || e.message == "jwt expired") ? CONSTANTS.SESSION_EXPIRED : e.message;
+                return Promise.reject(e);
+            }
             return Promise.resolve(finalResponse);
         } catch (e) {
             console.log("Error in  save user", e);

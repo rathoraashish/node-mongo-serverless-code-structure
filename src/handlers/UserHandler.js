@@ -9,7 +9,7 @@ const addUser = (event, context, callback) => {
   })();
 }
 
-/**signup user */
+/**Login user */
 const userLogin = (event, context, callback) => {
   (async () => {
     let [err, response] = await to(new UserMgmtService().loginUser(parseBody(event), event, context));
@@ -17,4 +17,12 @@ const userLogin = (event, context, callback) => {
   })();
 }
 
-export { addUser,userLogin }
+/**Login user */
+const getUser = (event, context, callback) => {
+  (async () => {
+    let [err, response] = await to(new UserMgmtService().getUser(parseBody(event), event, context));
+    renderResponse(err, response, callback);
+  })();
+}
+
+export { addUser,userLogin,getUser }
