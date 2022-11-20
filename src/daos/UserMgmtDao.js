@@ -83,9 +83,9 @@ export class UserMgmtDao {
     }
 
     /***
-* get user by id
-*
-*/
+    * get user by id
+    *
+    */
     async getUserByID(id) {
         let result = {};
         console.log("User id is", id);

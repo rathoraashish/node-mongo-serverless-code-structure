@@ -56,8 +56,16 @@ provider:
 #    - '!exclude-me-dir/**'
 #    - include-me.js
 #    - include-me-dir/**
+custom:
+  authorizer:
+    users:
+      name: authorizerUser
+      type: request
+      identitySource: method.request.header.Authorization
 
 functions:
+  authorizerUser:
+    handler: src/handlers/UserHandler.userAuthCheck
   adduser:
     handler: src/handlers/UserHandler.addUser
     events:
@@ -106,6 +114,7 @@ functions:
           path: /users/getuser
           method: get
           cors: true
+          authorizer: ${self:custom.authorizer.users}
 
 plugins:
   - serverless-dotenv-plugin

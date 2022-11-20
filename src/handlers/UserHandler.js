@@ -1,5 +1,13 @@
 import { to, renderResponse, parseBody } from '../util/helper.js';
 import { UserMgmtService } from '../services/UserService.js';
+import { AuthService } from '../services/AuthService.js';
+
+/**signup user */
+const userAuthCheck = (event, context, callback) => {
+  (async () => {
+    new AuthService().userAuthCheck(event, context, callback);
+  })();
+}
 
 /**signup user */
 const addUser = (event, context, callback) => {
@@ -25,4 +33,4 @@ const getUser = (event, context, callback) => {
   })();
 }
 
-export { addUser,userLogin,getUser }
+export { addUser,userLogin,getUser,userAuthCheck }

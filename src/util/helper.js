@@ -170,3 +170,8 @@ export function isUrl(str){
     return false;
   }
 }
+
+/** get authorizer user */
+export function getAuthorizerUser(event){
+  return JSON.parse(event.requestContext.authorizer.user)
+}

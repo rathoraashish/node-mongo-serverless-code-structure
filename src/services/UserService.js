@@ -1,4 +1,4 @@
-import { getDefaultResponse, isValidString } from "../util/helper.js";
+import { getDefaultResponse, isValidString,getAuthorizerUser } from "../util/helper.js";
 import { UserMgmtDao } from "../daos/UserMgmtDao.js";
 import { Codes, CONSTANTS } from "../util/SiteConfig.js";
 import * as dotenv from "dotenv";
@@ -91,10 +91,10 @@ export class UserMgmtService {
      * Get user info
     */
     async getUser(userReq, event, context) {
-
+        let loginUser = getAuthorizerUser(event);
+        console.log("login user details are: ",loginUser);
         let finalResponse = getDefaultResponse();
         let authToken = event.headers.authorization;
-        // let loginUser = getAuthorizerUser(event);
         try {
             //check validation
             if (!authToken || !isValidString(authToken)) {
